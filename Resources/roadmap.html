@@ -1,0 +1,824 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trailhead → Summit — AI/ML Engineer Route</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-void:#0E1417;
+    --bg-panel:#151E23;
+    --bg-panel-2:#1B262C;
+    --border:#26333A;
+    --border-soft:#1E2A30;
+    --amber:#E0A458;
+    --amber-soft:rgba(224,164,88,0.16);
+    --teal:#6FBFA0;
+    --teal-soft:rgba(111,191,160,0.16);
+    --text:#E9E4D6;
+    --text-muted:#93A29B;
+    --text-faint:#5C6C67;
+    --font-display:'Fraunces', serif;
+    --font-body:'Inter', sans-serif;
+    --font-mono:'IBM Plex Mono', monospace;
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  @media (prefers-reduced-motion: reduce){
+    html{scroll-behavior:auto;}
+    *{animation-duration:0.001ms !important; transition-duration:0.001ms !important;}
+  }
+
+  body{
+    margin:0;
+    background:var(--bg-void);
+    background-image:
+      repeating-linear-gradient(0deg, rgba(111,191,160,0.035) 0px, rgba(111,191,160,0.035) 1px, transparent 1px, transparent 64px),
+      repeating-linear-gradient(90deg, rgba(111,191,160,0.02) 0px, rgba(111,191,160,0.02) 1px, transparent 1px, transparent 64px);
+    color:var(--text);
+    font-family:var(--font-body);
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  a{color:var(--teal);}
+  a:focus-visible, button:focus-visible, input:focus-visible, label:focus-within{
+    outline:2px solid var(--amber);
+    outline-offset:3px;
+    border-radius:2px;
+  }
+
+  /* ---------- HUD progress bar ---------- */
+  .hud{
+    position:sticky; top:0; z-index:50;
+    display:flex; align-items:center; gap:12px;
+    padding:10px 20px;
+    background:rgba(14,20,23,0.92);
+    backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--border-soft);
+    font-family:var(--font-mono);
+    font-size:12px;
+    color:var(--text-muted);
+  }
+  .hud-label{white-space:nowrap;}
+  .hud-track{
+    flex:1; height:6px; border-radius:99px;
+    background:var(--bg-panel-2);
+    overflow:hidden;
+    border:1px solid var(--border);
+  }
+  .hud-fill{
+    height:100%; width:0%;
+    background:linear-gradient(90deg, var(--amber), var(--teal));
+    transition:width 0.5s ease;
+    border-radius:99px;
+  }
+  .hud-count{white-space:nowrap; color:var(--text);}
+
+  /* ---------- Hero ---------- */
+  .hero{
+    padding:64px 20px 20px;
+    max-width:1100px;
+    margin:0 auto;
+    text-align:center;
+  }
+  .eyebrow{
+    font-family:var(--font-mono);
+    font-size:12px;
+    letter-spacing:0.16em;
+    text-transform:uppercase;
+    color:var(--amber);
+    margin:0 0 18px;
+  }
+  h1{
+    font-family:var(--font-display);
+    font-optical-sizing:auto;
+    font-weight:600;
+    font-size:clamp(2.4rem, 6vw, 4.4rem);
+    line-height:1.02;
+    margin:0 0 18px;
+    letter-spacing:-0.01em;
+  }
+  h1 em{
+    font-style:italic;
+    font-weight:400;
+    color:var(--teal);
+  }
+  .hero-sub{
+    font-size:clamp(0.95rem, 1.6vw, 1.15rem);
+    color:var(--text-muted);
+    max-width:620px;
+    margin:0 auto 44px;
+  }
+
+  /* ---------- Trail map SVG ---------- */
+  .trail-wrap{max-width:1100px; margin:0 auto; padding:0 8px;}
+  .trail-map{width:100%; height:auto; display:block; overflow:visible;}
+  .trail-silhouette{fill:var(--bg-panel); stroke:none;}
+  .trail-path-base{fill:none; stroke:var(--border); stroke-width:3; stroke-linecap:round; stroke-linejoin:round;}
+  .trail-path-progress{fill:none; stroke:url(#trailGradient); stroke-width:3; stroke-linecap:round; stroke-linejoin:round; transition:stroke-dashoffset 0.6s ease;}
+  .marker-dot{fill:var(--bg-void); stroke:var(--border); stroke-width:2.5; transition:stroke 0.3s ease, fill 0.3s ease;}
+  .marker-dot.cleared{stroke:var(--teal); fill:var(--teal-soft);}
+  .marker-label{
+    font-family:var(--font-mono); font-size:11px; fill:var(--text-faint); text-anchor:middle;
+  }
+  .marker-group{cursor:pointer;}
+  .marker-group:hover .marker-dot{stroke:var(--amber);}
+  .marker-group:focus-visible{outline:none;}
+  .marker-group:focus-visible .marker-dot{stroke:var(--amber); stroke-width:3;}
+
+  .hud-counter{
+    font-family:var(--font-mono);
+    font-size:13px;
+    color:var(--text-muted);
+    text-align:center;
+    margin:18px 0 8px;
+  }
+  .hud-counter span{color:var(--text);}
+
+  /* ---------- Camp nav pills ---------- */
+  .camp-nav{
+    max-width:1100px; margin:36px auto 0;
+    padding:0 20px 10px;
+    display:flex; gap:8px; overflow-x:auto;
+    scrollbar-width:thin;
+  }
+  .camp-nav a{
+    flex:0 0 auto;
+    font-family:var(--font-mono);
+    font-size:12px;
+    color:var(--text-muted);
+    text-decoration:none;
+    padding:7px 13px;
+    border:1px solid var(--border);
+    border-radius:99px;
+    white-space:nowrap;
+    transition:border-color 0.2s ease, color 0.2s ease;
+  }
+  .camp-nav a:hover{border-color:var(--amber); color:var(--amber);}
+
+  /* ---------- Main / camps ---------- */
+  main{max-width:900px; margin:0 auto; padding:20px 20px 40px;}
+
+  .camp{
+    border:1px solid var(--border);
+    background:linear-gradient(180deg, var(--bg-panel) 0%, rgba(21,30,35,0.4) 100%);
+    border-radius:14px;
+    padding:28px clamp(18px, 4vw, 34px) 30px;
+    margin-bottom:22px;
+    scroll-margin-top:70px;
+    position:relative;
+  }
+  .camp::before{
+    content:"";
+    position:absolute; left:0; top:34px; bottom:34px; width:3px;
+    background:linear-gradient(180deg, var(--amber), var(--teal));
+    border-radius:0 4px 4px 0;
+    opacity:0.5;
+  }
+
+  .camp-head{
+    display:flex; align-items:flex-start; justify-content:space-between; gap:16px;
+    margin-bottom:10px;
+  }
+  .camp-titles{flex:1; min-width:0;}
+  .camp-number{
+    font-family:var(--font-mono); font-size:11px; letter-spacing:0.14em;
+    color:var(--amber); text-transform:uppercase;
+  }
+  .camp h2{
+    font-family:var(--font-display); font-weight:600;
+    font-size:clamp(1.3rem, 3vw, 1.7rem);
+    margin:4px 0 0;
+  }
+
+  .camp-ring{position:relative; width:52px; height:52px; flex:0 0 auto;}
+  .camp-ring svg{transform:rotate(-90deg);}
+  .ring-bg{fill:none; stroke:var(--border); stroke-width:5;}
+  .ring-fg{fill:none; stroke:var(--teal); stroke-width:5; stroke-linecap:round; transition:stroke-dashoffset 0.5s ease;}
+  .ring-label{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    font-family:var(--font-mono); font-size:10px; color:var(--text-muted);
+  }
+
+  .camp-note{
+    color:var(--text-muted);
+    font-size:0.92rem;
+    border-left:2px solid var(--border);
+    padding-left:12px;
+    margin:14px 0 22px;
+  }
+
+  .gear-list{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:2px;}
+  .gear-item{
+    border-top:1px solid var(--border-soft);
+  }
+  .gear-item:first-child{border-top:none;}
+  .gear-item label{
+    display:flex; align-items:center; gap:12px;
+    padding:12px 4px;
+    cursor:pointer;
+  }
+  .gear-item input[type="checkbox"]{
+    appearance:none; -webkit-appearance:none;
+    width:19px; height:19px; flex:0 0 auto;
+    border:1.5px solid var(--text-faint);
+    border-radius:5px;
+    display:grid; place-content:center;
+    cursor:pointer;
+    background:var(--bg-void);
+    transition:border-color 0.2s ease, background 0.2s ease;
+  }
+  .gear-item input[type="checkbox"]::after{
+    content:"";
+    width:10px; height:10px;
+    clip-path:polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 45% 68%);
+    background:var(--bg-void);
+    transform:scale(0);
+    transition:transform 0.15s ease;
+  }
+  .gear-item input[type="checkbox"]:checked{
+    background:var(--teal); border-color:var(--teal);
+  }
+  .gear-item input[type="checkbox"]:checked::after{transform:scale(1);}
+
+  .gear-body{flex:1; min-width:0; display:flex; flex-wrap:wrap; align-items:baseline; gap:8px 10px;}
+  .gear-name{
+    font-weight:500; color:var(--text);
+    text-decoration:none;
+    border-bottom:1px dashed transparent;
+  }
+  a.gear-name:hover{border-bottom-color:var(--teal);}
+  .gear-item.checked .gear-name{color:var(--text-faint); text-decoration:line-through; text-decoration-color:var(--text-faint);}
+
+  .blaze{
+    font-family:var(--font-mono); font-size:9.5px; letter-spacing:0.08em;
+    padding:2.5px 7px; border-radius:99px; text-transform:uppercase;
+    flex:0 0 auto;
+  }
+  .blaze.have{background:var(--amber-soft); color:var(--amber); border:1px solid var(--amber-dim, rgba(224,164,88,0.35));}
+  .blaze.fetch{background:var(--teal-soft); color:var(--teal); border:1px solid rgba(111,191,160,0.35);}
+
+  .gear-hint{
+    width:100%;
+    font-size:0.82rem; color:var(--text-muted);
+    font-style:italic;
+  }
+
+  /* ---------- Summit / footer note ---------- */
+  .summit-note{
+    border:1px dashed var(--border);
+    border-radius:14px;
+    padding:26px clamp(18px,4vw,34px);
+    margin-top:8px;
+    background:var(--bg-panel);
+  }
+  .summit-note h2{
+    font-family:var(--font-display); font-weight:600; font-size:1.3rem; margin:0 0 10px;
+    color:var(--teal);
+  }
+  .summit-note p{color:var(--text-muted); margin:0; font-size:0.95rem;}
+
+  footer{
+    text-align:center; padding:36px 20px 50px;
+    font-family:var(--font-mono); font-size:11.5px; color:var(--text-faint);
+  }
+  #saveState{color:var(--teal);}
+  #resetBtn{
+    margin-top:14px;
+    background:none;
+    border:1px solid var(--border);
+    color:var(--text-faint);
+    font-family:var(--font-mono);
+    font-size:11px;
+    padding:7px 14px;
+    border-radius:99px;
+    cursor:pointer;
+    transition:border-color 0.2s ease, color 0.2s ease;
+  }
+  #resetBtn:hover{border-color:var(--amber); color:var(--amber);}
+
+  @media (max-width:600px){
+    .camp-head{flex-direction:row;}
+    .hero{padding-top:44px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="hud" role="status" aria-live="polite">
+  <span class="hud-label">ROUTE PROGRESS</span>
+  <div class="hud-track"><div class="hud-fill" id="hudFill"></div></div>
+  <span class="hud-count" id="hudCount">0 / 20</span>
+</div>
+
+<header class="hero">
+  <p class="eyebrow">Field Guide · Self-Taught Route</p>
+  <h1>Trailhead → <em>Summit</em></h1>
+  <p class="hero-sub">A self-guided route from Python fundamentals to shipping LLMs — no instructor required. Seven camps, each with its own gear list. Check things off as you clear them; the trail lights up behind you.</p>
+
+  <div class="trail-wrap">
+    <svg class="trail-map" viewBox="0 0 1200 240" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Elevation profile of the seven learning phases">
+      <defs>
+        <linearGradient id="trailGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#E0A458"/>
+          <stop offset="100%" stop-color="#6FBFA0"/>
+        </linearGradient>
+      </defs>
+      <path class="trail-silhouette" d="M0,240 L0,205 L100,160 L220,198 L340,132 L460,168 L580,96 L700,138 L820,66 L940,104 L1060,44 L1200,14 L1200,240 Z"/>
+      <path id="basePath" class="trail-path-base" d="M0,205 L100,160 L220,198 L340,132 L460,168 L580,96 L700,138 L820,66 L940,104 L1060,44 L1200,14"/>
+      <path id="progressPath" class="trail-path-progress" d="M0,205 L100,160 L220,198 L340,132 L460,168 L580,96 L700,138 L820,66 L940,104 L1060,44 L1200,14"/>
+
+      <g class="marker-group" data-target="camp-0" tabindex="0" role="link" aria-label="Jump to Camp 0">
+        <circle class="marker-dot" data-camp="0" cx="40" cy="196" r="9"/>
+        <text class="marker-label" x="40" y="222">C0</text>
+      </g>
+      <g class="marker-group" data-target="camp-1" tabindex="0" role="link" aria-label="Jump to Camp 1">
+        <circle class="marker-dot" data-camp="1" cx="220" cy="198" r="9"/>
+        <text class="marker-label" x="220" y="222">C1</text>
+      </g>
+      <g class="marker-group" data-target="camp-2" tabindex="0" role="link" aria-label="Jump to Camp 2">
+        <circle class="marker-dot" data-camp="2" cx="460" cy="168" r="9"/>
+        <text class="marker-label" x="460" y="222">C2</text>
+      </g>
+      <g class="marker-group" data-target="camp-3" tabindex="0" role="link" aria-label="Jump to Camp 3">
+        <circle class="marker-dot" data-camp="3" cx="580" cy="96" r="9"/>
+        <text class="marker-label" x="580" y="222">C3</text>
+      </g>
+      <g class="marker-group" data-target="camp-4" tabindex="0" role="link" aria-label="Jump to Camp 4">
+        <circle class="marker-dot" data-camp="4" cx="820" cy="66" r="9"/>
+        <text class="marker-label" x="820" y="222">C4</text>
+      </g>
+      <g class="marker-group" data-target="camp-5" tabindex="0" role="link" aria-label="Jump to Camp 5">
+        <circle class="marker-dot" data-camp="5" cx="1060" cy="44" r="9"/>
+        <text class="marker-label" x="1060" y="222">C5</text>
+      </g>
+      <g class="marker-group" data-target="camp-6" tabindex="0" role="link" aria-label="Jump to Camp 6">
+        <circle class="marker-dot" data-camp="6" cx="1195" cy="16" r="9"/>
+        <text class="marker-label" x="1178" y="222">C6</text>
+      </g>
+    </svg>
+  </div>
+  <p class="hud-counter">🏔 <span id="overallText">0 / 20</span> waypoints cleared</p>
+</header>
+
+<nav class="camp-nav" aria-label="Jump to camp">
+  <a href="#camp-0">C0 · Base Camp</a>
+  <a href="#camp-1">C1 · Classical ML</a>
+  <a href="#camp-2">C2 · Deep Learning</a>
+  <a href="#camp-3">C3 · LLMs from Scratch</a>
+  <a href="#camp-4">C4 · LLM Ecosystem</a>
+  <a href="#camp-5">C5 · Production / MLOps</a>
+  <a href="#camp-6">C6 · Summit / Portfolio</a>
+</nav>
+
+<main>
+
+  <section class="camp" id="camp-0" data-camp-section="0">
+    <div class="camp-head">
+      <div class="camp-titles">
+        <span class="camp-number">Camp 0</span>
+        <h2>Base Camp — Foundations</h2>
+      </div>
+      <div class="camp-ring"><svg width="52" height="52"><circle class="ring-bg" cx="26" cy="26" r="21"/><circle class="ring-fg" data-ring="0" cx="26" cy="26" r="21"/></svg><span class="ring-label" data-ring-label="0">0/4</span></div>
+    </div>
+    <p class="camp-note">Math runs alongside the coding, not before it — don't gate yourself waiting to "finish" the math book before writing code.</p>
+    <ul class="gear-list">
+      <li class="gear-item">
+        <label>
+          <input type="checkbox" data-camp="0" data-id="0-0">
+          <span class="gear-body">
+            <span class="blaze have">In library</span>
+            <span class="gear-name">Python for Data Analysis</span>
+            <span class="gear-hint">Already on your shelf — finish this one first.</span>
+          </span>
+        </label>
+      </li>
+      <li class="gear-item">
+        <label>
+          <input type="checkbox" data-camp="0" data-id="0-1">
+          <span class="gear-body">
+            <span class="blaze fetch">Fetch</span>
+            <a class="gear-name" href="https://mml-book.github.io" target="_blank" rel="noopener">Mathematics for Machine Learning (free PDF)</a>
+            <span class="gear-hint">mml-book.github.io — linear algebra, calculus, probability, framed for ML.</span>
+          </span>
+        </label>
+      </li>
+      <li class="gear-item">
+        <label>
+          <input type="checkbox" data-camp="0" data-id="0-2">
+          <span class="gear-body">
+            <span class="blaze fetch">Fetch</span>
+            <span class="gear-name">3Blue1Brown — Essence of Linear Algebra</span>
+            <span class="gear-hint">YouTube playlist. Visual intuition before the matrix ops show up in code.</span>
+          </span>
+        </label>
+      </li>
+      <li class="gear-item">
+        <label>
+          <input type="checkbox" data-camp="0" data-id="0-3">
+          <span class="gear-body">
+            <span class="blaze fetch">Fetch</span>
+            <span class="gear-name">3Blue1Brown — Neural Networks</span>
+            <span class="gear-hint">YouTube playlist. Backprop, gradient descent, made visual.</span>
+          </span>
+        </label>
+      </li>
+    </ul>
+  </section>
+
+  <section class="camp" id="camp-1" data-camp-section="1">
+    <div class="camp-head">
+      <div class="camp-titles">
+        <span class="camp-number">Camp 1</span>
+        <h2>Classical ML</h2>
+      </div>
+      <div class="camp-ring"><svg width="52" height="52"><circle class="ring-bg" cx="26" cy="26" r="21"/><circle class="ring-fg" data-ring="1" cx="26" cy="26" r="21"/></svg><span class="ring-label" data-ring-label="1">0/2</span></div>
+    </div>
+    <p class="camp-note">Regression, trees, ensembles, SVMs, clustering — the workhorse models you'll keep reaching for even once you're deep in LLM land.</p>
+    <ul class="gear-list">
+      <li class="gear-item">
+        <label>
+          <input type="checkbox" data-camp="1" data-id="1-0">
+          <span class="gear-body">
+            <span class="blaze have">In library</span>
+            <span class="gear-name">Hands-On Machine Learning (Géron) — ch. 1–9</span>
+            <span class="gear-hint">The classical ML half of the book.</span>
+          </span>
+        </label>
+      </li>
+      <li class="gear-item">
+        <label>
+          <input type="checkbox" data-camp="1" data-id="1-1">
+          <span class="gear-body">
+            <span class="blaze fetch">Fetch</span>
+            <a class="gear-name" href="https://www.kaggle.com" target="_blank" rel="noopener">Kaggle account</a>
+            <span class="gear-hint">Start "Getting Started" competitions — Titanic, House Prices — once you're a few chapters in.</span>
+          </span>
+        </label>
+      </li>
+    </ul>
+  </section>
+
+  <section class="camp" id="camp-2" data-camp-section="2">
+    <div class="camp-head">
+      <div class="camp-titles">
+        <span class="camp-number">Camp 2</span>
+        <h2>Deep Learning</h2>
+      </div>
+      <div class="camp-ring"><svg width="52" height="52"><circle class="ring-bg" cx="26" cy="26" r="21"/><circle class="ring-fg" data-ring="2" cx="26" cy="26" r="21"/></svg><span class="ring-label" data-ring-label="2">0/2</span></div>
+    </div>
+    <p class="camp-note">Neural nets, CNNs, RNNs, autoencoders — plus a second pass on the same ideas in PyTorch, since you'll live in PyTorch from here on.</p>
+    <ul class="gear-list">
+      <li class="gear-item">
+        <label>
+          <input type="checkbox" data-camp="2" data-id="2-0">
+          <span class="gear-body">
+            <span class="blaze have">In library</span>
+            <span class="gear-name">Hands-On Machine Learning (Géron) — ch. 10–19</span>
+            <span class="gear-hint">Neural nets through deployment basics.</span>
+          </span>
+        </label>
+      </li>
+      <li class="gear-item">
+        <label>
+          <input type="checkbox" data-camp="2" data-id="2-1">
+          <span class="gear-body">
+            <span class="blaze have">In library</span>
+            <span class="gear-name">Machine Learning with PyTorch and Scikit-Learn (Raschka)</span>
+            <span class="gear-hint">Your bridge from theory into the framework you'll use for everything after.</span>
+          </span>
+        </label>
+      </li>
+    </ul>
+  </section>
+
+  <section class="camp" id="camp-3" data-camp-section="3">
+    <div class="camp-head">
+      <div class="camp-titles">
+        <span class="camp-number">Camp 3</span>
+        <h2>LLMs from Scratch</h2>
+      </div>
+      <div class="camp-ring"><svg width="52" height="52"><circle class="ring-bg" cx="26" cy="26" r="21"/><circle class="ring-fg" data-ring="3" cx="26" cy="26" r="21"/></svg><span class="ring-label" data-ring-label="3">0/2</span></div>
+    </div>
+    <p class="camp-note">You already have the best resource for this stage — it goes well past the original book: GQA, MLA, sliding-window attention, MoE, DPO, and standalone builds of Qwen3, Gemma, OLMo3.</p>
+    <ul class="gear-list">
+      <li class="gear-item">
+        <label>
+          <input type="checkbox" data-camp="3" data-id="3-0">
+          <span class="gear-body">
+            <span class="blaze have">In library</span>
+            <span class="gear-name">LLMs-from-scratch — main chapters (ch01–ch07)</span>
+            <span class="gear-hint">Tokenization through pretraining, finetuning, and instruction-tuning.</span>
+          </span>
+        </label>
+      </li>
+      <li class="gear-item">
+        <label>
+          <input type="checkbox" data-camp="3" data-id="3-1">
+          <span class="gear-body">
+            <span class="blaze have">In library</span>
+            <span class="gear-name">LLMs-from-scratch — bonus material</span>
+            <span class="gear-hint">KV cache, GQA, MLA, sliding-window attention, MoE, DeltaNet, DPO.</span>
+          </span>
+        </label>
+      </li>
+    </ul>
+  </section>
+
+  <section class="camp" id="camp-4" data-camp-section="4">
+    <div class="camp-head">
+      <div class="camp-titles">
+        <span class="camp-number">Camp 4</span>
+        <h2>LLM Ecosystem &amp; Practical Skills</h2>
+      </div>
+      <div class="camp-ring"><svg width="52" height="52"><circle class="ring-bg" cx="26" cy="26" r="21"/><circle class="ring-fg" data-ring="4" cx="26" cy="26" r="21"/></svg><span class="ring-label" data-ring-label="4">0/4</span></div>
+    </div>
+    <p class="camp-note">The bridge from "I built a GPT from scratch" to "I can use the tools everyone else uses" — fine-tuning, serving, retrieval.</p>
+    <ul class="gear-list">
+      <li class="gear-item">
+        <label>
+          <input type="checkbox" data-camp="4" data-id="4-0">
+          <span class="gear-body">
+            <span class="blaze fetch">Fetch</span>
+            <a class="gear-name" href="https://huggingface.co/learn/nlp-course" target="_blank" rel="noopener">Hugging Face NLP Course</a>
+            <span class="gear-hint">Free. Fluency with transformers/datasets/PEFT libraries.</span>
+          </span>
+        </label>
+      </li>
+      <li class="gear-item">
+        <label>
+          <input type="checkbox" data-camp="4" data-id="4-1">
+          <span class="gear-body">
+            <span class="blaze fetch">Fetch</span>
+            <a class="gear-name" href="https://huggingface.co/docs/peft" target="_blank" rel="noopener">Hugging Face PEFT docs</a>
+            <span class="gear-hint">LoRA / QLoRA fine-tuning.</span>
+          </span>
+        </label>
+      </li>
+      <li class="gear-item">
+        <label>
+          <input type="checkbox" data-camp="4" data-id="4-2">
+          <span class="gear-body">
+            <span class="blaze fetch">Fetch</span>
+            <a class="gear-name" href="https://fastapi.tiangolo.com" target="_blank" rel="noopener">FastAPI docs</a>
+            <span class="gear-hint">Wrap a trained model as a servable API — trivial given your dev background.</span>
+          </span>
+        </label>
+      </li>
+      <li class="gear-item">
+        <label>
+          <input type="checkbox" data-camp="4" data-id="4-3">
+          <span class="gear-body">
+            <span class="blaze fetch">Fetch</span>
+            <a class="gear-name" href="https://www.deeplearning.ai/short-courses/" target="_blank" rel="noopener">DeepLearning.AI short courses</a>
+            <span class="gear-hint">Free. Grab a LangChain course and a RAG-focused one.</span>
+          </span>
+        </label>
+      </li>
+    </ul>
+  </section>
+
+  <section class="camp" id="camp-5" data-camp-section="5">
+    <div class="camp-head">
+      <div class="camp-titles">
+        <span class="camp-number">Camp 5</span>
+        <h2>Production / MLOps</h2>
+      </div>
+      <div class="camp-ring"><svg width="52" height="52"><circle class="ring-bg" cx="26" cy="26" r="21"/><circle class="ring-fg" data-ring="5" cx="26" cy="26" r="21"/></svg><span class="ring-label" data-ring-label="5">0/4</span></div>
+    </div>
+    <p class="camp-note">The gap most self-taught learners skip — what happens to a model after training. This is what makes you an <em>engineer</em> and not just a notebook author.</p>
+    <ul class="gear-list">
+      <li class="gear-item">
+        <label>
+          <input type="checkbox" data-camp="5" data-id="5-0">
+          <span class="gear-body">
+            <span class="blaze fetch">Fetch</span>
+            <a class="gear-name" href="https://docs.docker.com" target="_blank" rel="noopener">Docker</a>
+            <span class="gear-hint">Install Docker Desktop, work through "Get Started."</span>
+          </span>
+        </label>
+      </li>
+      <li class="gear-item">
+        <label>
+          <input type="checkbox" data-camp="5" data-id="5-1">
+          <span class="gear-body">
+            <span class="blaze fetch">Fetch</span>
+            <a class="gear-name" href="https://docs.wandb.ai" target="_blank" rel="noopener">Weights &amp; Biases</a>
+            <span class="gear-hint">Or MLflow (mlflow.org/docs) if you'd rather stay open-source. Experiment tracking.</span>
+          </span>
+        </label>
+      </li>
+      <li class="gear-item">
+        <label>
+          <input type="checkbox" data-camp="5" data-id="5-2">
+          <span class="gear-body">
+            <span class="blaze fetch">Fetch</span>
+            <a class="gear-name" href="https://dvc.org/doc" target="_blank" rel="noopener">DVC</a>
+            <span class="gear-hint">Data and model versioning.</span>
+          </span>
+        </label>
+      </li>
+      <li class="gear-item">
+        <label>
+          <input type="checkbox" data-camp="5" data-id="5-3">
+          <span class="gear-body">
+            <span class="blaze fetch">Fetch</span>
+            <a class="gear-name" href="https://docs.aws.amazon.com/sagemaker/" target="_blank" rel="noopener">AWS SageMaker docs</a>
+            <span class="gear-hint">You already have setup notes for this in your repo — deploy something end-to-end.</span>
+          </span>
+        </label>
+      </li>
+    </ul>
+  </section>
+
+  <section class="camp" id="camp-6" data-camp-section="6">
+    <div class="camp-head">
+      <div class="camp-titles">
+        <span class="camp-number">Camp 6</span>
+        <h2>Summit — Portfolio</h2>
+      </div>
+      <div class="camp-ring"><svg width="52" height="52"><circle class="ring-bg" cx="26" cy="26" r="21"/><circle class="ring-fg" data-ring="6" cx="26" cy="26" r="21"/></svg><span class="ring-label" data-ring-label="6">0/2</span></div>
+    </div>
+    <p class="camp-note">Tutorials teach mechanics. Projects prove you can ship. This is what goes in front of an interviewer.</p>
+    <ul class="gear-list">
+      <li class="gear-item">
+        <label>
+          <input type="checkbox" data-camp="6" data-id="6-0">
+          <span class="gear-body">
+            <span class="blaze fetch">Build</span>
+            <span class="gear-name">2–3 end-to-end projects</span>
+            <span class="gear-hint">Data → train → serve (FastAPI) → track (W&amp;B/MLflow) → deploy (Docker/SageMaker).</span>
+          </span>
+        </label>
+      </li>
+      <li class="gear-item">
+        <label>
+          <input type="checkbox" data-camp="6" data-id="6-1">
+          <span class="gear-body">
+            <span class="blaze fetch">Build</span>
+            <span class="gear-name">Publish to GitHub</span>
+            <span class="gear-hint">Clear READMEs on every project — this is your proof of work.</span>
+          </span>
+        </label>
+      </li>
+    </ul>
+  </section>
+
+  <section class="summit-note">
+    <h2>Rule of thumb for breaking camp</h2>
+    <p>You don't need mastery to move to the next phase — you need to be able to <em>use</em> what this camp taught you without constantly looking things up. If you're still confused on the fundamentals, stay put. If you're just slow but you understand it, move on and let practice sharpen you. Math (Camp 0) is the one exception — it runs alongside everything else rather than gating it.</p>
+  </section>
+
+</main>
+
+<footer>
+  Progress saves automatically to this browser, on this device, for this file. <span id="saveState"></span>
+  <br>
+  It won't follow you to a different browser or computer — keep opening this same downloaded file to pick up where you left off.
+  <br>
+  <button id="resetBtn" type="button">Reset all progress</button>
+</footer>
+
+<script>
+(function(){
+  const STORAGE_KEY = 'trailhead-summit-progress';
+  const checkboxes = Array.from(document.querySelectorAll('.gear-item input[type="checkbox"]'));
+  const totalItems = checkboxes.length;
+
+  const basePath = document.getElementById('basePath');
+  const progressPath = document.getElementById('progressPath');
+  const pathLength = basePath.getTotalLength();
+  progressPath.style.strokeDasharray = pathLength;
+  progressPath.style.strokeDashoffset = pathLength;
+
+  const hudFill = document.getElementById('hudFill');
+  const hudCount = document.getElementById('hudCount');
+  const overallText = document.getElementById('overallText');
+  const saveState = document.getElementById('saveState');
+  const resetBtn = document.getElementById('resetBtn');
+
+  const ringCircumference = 2 * Math.PI * 21;
+  document.querySelectorAll('.ring-fg').forEach(ring => {
+    ring.style.strokeDasharray = ringCircumference;
+    ring.style.strokeDashoffset = ringCircumference;
+  });
+
+  function campTotals(camp){
+    const items = checkboxes.filter(cb => cb.dataset.camp === camp);
+    const checked = items.filter(cb => cb.checked).length;
+    return { checked, total: items.length };
+  }
+
+  function updateCamp(camp){
+    const { checked, total } = campTotals(camp);
+    const label = document.querySelector('[data-ring-label="' + camp + '"]');
+    const ring = document.querySelector('.ring-fg[data-ring="' + camp + '"]');
+    if(label) label.textContent = checked + '/' + total;
+    if(ring){
+      const offset = ringCircumference * (1 - (total ? checked/total : 0));
+      ring.style.strokeDashoffset = offset;
+    }
+    const marker = document.querySelector('.marker-dot[data-camp="' + camp + '"]');
+    if(marker){
+      marker.classList.toggle('cleared', total > 0 && checked === total);
+    }
+  }
+
+  function updateOverall(){
+    const checkedTotal = checkboxes.filter(cb => cb.checked).length;
+    const pct = totalItems ? checkedTotal/totalItems : 0;
+    hudFill.style.width = (pct*100) + '%';
+    hudCount.textContent = checkedTotal + ' / ' + totalItems;
+    overallText.textContent = checkedTotal + ' / ' + totalItems;
+    progressPath.style.strokeDashoffset = pathLength * (1 - pct);
+  }
+
+  function refreshAll(){
+    ['0','1','2','3','4','5','6'].forEach(updateCamp);
+    updateOverall();
+  }
+
+  let saveTimer = null;
+  function persist(){
+    if(saveState) saveState.textContent = 'saving…';
+    const state = {};
+    checkboxes.forEach(cb => { state[cb.dataset.id] = cb.checked; });
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => {
+      try{
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        if(saveState) saveState.textContent = 'saved ✓';
+        setTimeout(() => { if(saveState) saveState.textContent = ''; }, 1500);
+      }catch(err){
+        console.error('Storage error:', err);
+        if(saveState) saveState.textContent = 'save failed — private/incognito mode blocks this';
+      }
+    }, 150);
+  }
+
+  function loadProgress(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(raw){
+        const state = JSON.parse(raw);
+        checkboxes.forEach(cb => {
+          if(state[cb.dataset.id]){
+            cb.checked = true;
+            cb.closest('.gear-item').classList.add('checked');
+          }
+        });
+      }
+    }catch(err){
+      // No saved progress yet, or storage is blocked (e.g. private browsing) — start fresh silently.
+    }
+    refreshAll();
+  }
+
+  checkboxes.forEach(cb => {
+    cb.addEventListener('change', () => {
+      cb.closest('.gear-item').classList.toggle('checked', cb.checked);
+      updateCamp(cb.dataset.camp);
+      updateOverall();
+      persist();
+    });
+  });
+
+  if(resetBtn){
+    resetBtn.addEventListener('click', () => {
+      if(!confirm('Clear all checked progress on this roadmap?')) return;
+      checkboxes.forEach(cb => {
+        cb.checked = false;
+        cb.closest('.gear-item').classList.remove('checked');
+      });
+      refreshAll();
+      try{
+        localStorage.removeItem(STORAGE_KEY);
+        if(saveState){ saveState.textContent = 'saved ✓'; setTimeout(() => saveState.textContent = '', 1500); }
+      }catch(err){
+        console.error('Storage error:', err);
+      }
+    });
+  }
+
+  document.querySelectorAll('.marker-group').forEach(g => {
+    function jump(){
+      const target = document.getElementById(g.dataset.target);
+      if(target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    g.addEventListener('click', jump);
+    g.addEventListener('keydown', e => {
+      if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); jump(); }
+    });
+  });
+
+  loadProgress();
+})();
+</script>
+
+</body>
+</html>
