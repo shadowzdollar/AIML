@@ -38,6 +38,7 @@ Thumbs.db
 *.mov
 *.wav
 .workspace/
-Resources/
-Practice/
-projects/
+
+*.pdf
+*.PDF
+Practice/data_analysis/pydata-book/
